@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+<meta name="progressive" content="false" />
+<meta name="allow-skip" content="false" />
+
+<title>Plotly and Shiny Tutorial</title>
+
+
+<!-- highlightjs -->
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+</head>
+
+<body>
+
+
+
+<div class="pageContent band">
+<div class="bandContent page">
+
+<div class="topics">
+
+<p><img src="images/opensdp_logo_white.png" width="400px" /></p>
+<div id="section-introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This tutorial is an introduction to making interactive graphics, and even entire websites, using R. The R packages that make this possible are “Plotly” and “Shiny.”</p>
+<p>Plotly is the R package used to create the graphs and charts in your visualization project. Plotly has an elegant default graphical style that includes all major graph types and hover-over tooltips. Take a look at the <a href="https://plot.ly/r/">plotly reference</a> and have this <a href="https://images.plot.ly/plotly-documentation/images/r_cheat_sheet.pdf">plotly cheat sheet</a> open as you go through the exercises in this tutorial.</p>
+<p>Plotly alone can’t give you a fully interactive user experience. The Shiny package takes interactivity to the next level. It allows us to include additional complex user controls such as sidebars and buttons. Shiny also makes it easy to create a full website for your data dashboard if you desire. You can see examples of Shiny projects in the <a href="https://www.rstudio.com/products/shiny/shiny-user-showcase/">Shiny showcase</a>, though these examples only scratch the surface of what <a href="http://shiny.rstudio.com/tutorial/">Shiny can do</a>. <a href="https://cpsievert.github.io/plotly_book/index.html">This free online book</a> is also a great reference for Plotly.</p>
+<div class="panel panel-default">
+<div class="panel-heading tutorial-panel-heading">Quiz</div>
+<table class="table quiz-table">
+<tr>
+<td>
+
+<div id="htmlwidget-d5921723938521374fa9" style="width:100%;height:auto;", class = "quiz html-widget">
+<div class="panel panel-default">
+<div class="panel-body quizArea">
+</div>
+</div>
+</div>
+
+<script type="application/json" data-for="htmlwidget-d5921723938521374fa9">{"x":{"question":"Check your understanding. What are the functions of the Shiny and Plotly packages?","answers":[{"option":"Shiny creates chart graphics. Plotly adds additional user controls and website features.","correct":false,"message":null},{"option":"Plotly aggregates data for creating graphics. Shiny creates the interactive visualizations.","correct":false,"message":null},{"option":"Plotly creates chart graphics. Shiny adds additional user controls and website features.","correct":true,"message":null},{"option":"I don&#39;t know. Use Tableau instead.","correct":false,"message":null}],"label":"shinyquestion-1","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"Check your understanding. What are the functions of the Shiny and Plotly packages?","a":[{"option":"Shiny creates chart graphics. Plotly adds additional user controls and website features.","correct":false,"message":null},{"option":"Plotly aggregates data for creating graphics. Shiny creates the interactive visualizations.","correct":false,"message":null},{"option":"Plotly creates chart graphics. Shiny adds additional user controls and website features.","correct":true,"message":null},{"option":"I don&#39;t know. Use Tableau instead.","correct":false,"message":null}],"correct":"Correct!","incorrect":"Incorrect."}]}},"evals":[],"jsHooks":[]}</script>
+</td>
+</tr>
+</table>
+</div>
+<div id="section-objectives" class="section level3">
+<h3>Objectives</h3>
+<p>At the end of this tutorial you will be able to:</p>
+<ol style="list-style-type: decimal">
+<li><p>Create interactive graphs using plotly</p></li>
+<li><p>Add user controls to your plotly graph using shiny</p></li>
+<li><p>Use shiny to make a full website in R</p></li>
+</ol>
+</div>
+<div id="section-instructors-note" class="section level3">
+<h3>Instructor’s Note</h3>
+<p>This tutorial contains boxes where you can try out code for yourself. I highly encourage you to give the code a try. To run your code, hit the green “Run Code” button. If your code does not contain errors, output will appear. If the code did not run, you will see an error.</p>
+<p>You can click the “Solution” button to see the intended answer at any time. To run the tutorial code:</p>
+<ul>
+<li><p>Click the solution button</p></li>
+<li><p>Click “Copy to Clipboard”</p></li>
+<li><p>Paste the copied code into the exercise box (<code>Ctrl V</code> keyboard shortcut or right click and click “Paste”)</p></li>
+<li><p>Click “Run Code”</p></li>
+</ul>
+</div>
+<div id="section-our-data" class="section level3">
+<h3>Our Data</h3>
+<p>This tutorial uses data from the <a href="www.sdp.cepr.harvard.edu/toolkit">College-Going toolkit</a>, which is unique by <code>student_id + year</code>. For simplicity, the tutorial automatically translates the toolkit data into stored school- or agency-level datasets in R. Use the space below to take a look at our data. Use the function <code>head(datasetname, n=5)</code> on <code>schoolData</code> and <code>agencyData</code> to view the first 5 lines of our datasets.</p>
+<div class="tutorial-exercise-support" data-label="loadData" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>schoolData &lt;- structure(list(last_hs_name = c(&quot;River &quot;, &quot;West Spring Hill &quot;, 
+&quot;Upland &quot;, &quot;North &quot;, &quot;South &quot;, &quot;Peak &quot;, &quot;City &quot;, &quot;White Sands &quot;, 
+&quot;Central &quot;, &quot;Camino &quot;, &quot;Orchard &quot;), hs_diploma = c(258L, 435L, 
+263L, 205L, 435L, 257L, 194L, 392L, 337L, 453L, 529L), pct_4yr = c(27.1317829457364, 
+28.0459770114943, 41.4448669201521, 41.4634146341463, 44.1379310344828, 
+44.3579766536965, 51.0309278350515, 52.8061224489796, 53.4124629080119, 
+65.121412803532, 73.1568998109641), pct_2yr = c(32.5581395348837, 
+26.6666666666667, 18.6311787072243, 25.3658536585366, 27.816091954023, 
+29.5719844357977, 16.4948453608247, 26.2755102040816, 24.6290801186944, 
+21.1920529801325, 14.1776937618147), pct_4yr_delayed = c(0, 1.60919540229885, 
+1.14068441064639, 0.48780487804878, 1.14942528735632, 0, 0.515463917525773, 
+1.02040816326531, 1.48367952522255, 1.32450331125828, 1.13421550094518
+), pct_2yr_delayed = c(3.87596899224806, 5.97701149425287, 4.94296577946768, 
+5.85365853658537, 4.13793103448276, 4.28015564202335, 3.09278350515464, 
+3.31632653061224, 2.67062314540059, 0.662251655629139, 1.32325141776938
+), avg_test_math_8_std = c(-0.0572368162790698, -0.17006474045977, 
+0.0620150684410646, 0.168237465365854, 0.320300586206897, 0.122428973929961, 
+0.21138548814433, 0.492871761734694, 0.46508424925816, 0.713709099337748, 
+0.951112215879017), order_2yr = c(11L, 8L, 3L, 6L, 9L, 10L, 2L, 
+7L, 5L, 4L, 1L), order_4yr = 1:11), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;, &quot;order_2yr&quot;, &quot;order_4yr&quot;), row.names = c(NA, 
+-11L), class = c(&quot;tbl_df&quot;, &quot;tbl&quot;, &quot;data.frame&quot;))
+
+agencyData &lt;- structure(list(last_hs_name = &quot;Agency Average&quot;, hs_diploma = 3758L, 
+    pct_4yr = 49.4944119212347, pct_2yr = 23.6029803086748, pct_4yr_delayed = 1.0111761575306, 
+    pct_2yr_delayed = 3.40606705694518, avg_test_math_8_std = 0.359298796035125), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;), row.names = c(NA, -1L), class = c(&quot;tbl_df&quot;, 
+&quot;tbl&quot;, &quot;data.frame&quot;))</code></pre>
+</div>
+<div class="tutorial-exercise" data-label="viewdata" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":false,"error":false,"message":true,"exercise.df_print":"paged","exercise.setup":"loadData","exercise.checker":"NULL"}</script>
+</div>
+<div class="tutorial-exercise-support" data-label="viewdata-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>head(schoolData, n=5)
+head(agencyData, n=5)
+
+# Remember you access columns by putting the dataset name and the dollar sign, 
+# e.g. schoolData$last_hs_name</code></pre>
+</div>
+</div>
+</div>
+<div id="section-plotly-anatomy" class="section level2">
+<h2>Plotly Anatomy</h2>
+<p>Plotly is the R package that we will use to render our graphs. The syntax is fairly simple. Here is a basic scatter plot. You can see the point information when you hover over the markers.</p>
+<div class="tutorial-exercise" data-label="basicscatter" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>plot_1 &lt;- plot_ly(data = schoolData, x = ~avg_test_math_8_std, y = ~pct_4yr, type=&quot;scatter&quot;, mode = &quot;markers&quot;)
+plot_1</code></pre>
+<div id="45106493544b" style="width:624px;height:384px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="45106493544b">{"x":{"visdat":{"45102a485622":["function () ","plotlyVisDat"]},"cur_data":"45102a485622","attrs":{"45102a485622":{"x":{},"y":{},"mode":"markers","alpha":1,"sizes":[10,100],"type":"scatter"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"title":"avg_test_math_8_std"},"yaxis":{"domain":[0,1],"title":"pct_4yr"},"hovermode":"closest","showlegend":false},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"data":[{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[27.1317829457364,28.0459770114943,41.4448669201521,41.4634146341463,44.1379310344828,44.3579766536965,51.0309278350515,52.8061224489796,53.4124629080119,65.121412803532,73.1568998109641],"mode":"markers","type":"scatter","marker":{"fillcolor":"rgba(31,119,180,1)","color":"rgba(31,119,180,1)","line":{"color":"transparent"}},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":false,"error":false,"message":true,"exercise.df_print":"paged","exercise.setup":"loadData","exercise.checker":"NULL"}</script>
+</div>
+<p>We’ve defined the arguments <code>data</code>, <code>x</code>, <code>y</code>, <code>type</code>, and <code>mode</code>. Note: You must repeat the name of the plot <code>plot_1</code> in order to make it show up.</p>
+<div id="section-changing-markers-and-tooltips" class="section level3">
+<h3>Changing markers and tooltips</h3>
+<p>Now we can redo the same basic plot, but change the marker styling and add more tooltip information. We’ve added definitions for <code>marker</code>, <code>hoverinfo</code>, and <code>text</code>.</p>
+<div class="tutorial-exercise" data-label="prettyscatter" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>plot_2 &lt;- plot_ly(data = schoolData, x = ~avg_test_math_8_std, y = ~pct_4yr, mode = &quot;markers&quot;, type=&quot;scatter&quot;,
+                    marker = list(size=10,
+                                  color = &quot;steelblue&quot;,
+                                  line = list(
+                                    color = &quot;navy&quot;,
+                                    width = 2
+                                  )),
+                  hoverinfo = &quot;text&quot;,             
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Average 8th Grade Math Score: &quot;, format(schoolData$avg_test_math_8_std, digits=2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless 4-yr Enrollment: &quot;, format(schoolData$pct_4yr, digits=2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  )
+                )
+plot_2</code></pre>
+<div id="45107b922f9c" style="width:624px;height:384px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="45107b922f9c">{"x":{"visdat":{"451034324f8":["function () ","plotlyVisDat"]},"cur_data":"451034324f8","attrs":{"451034324f8":{"x":{},"y":{},"mode":"markers","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":{},"alpha":1,"sizes":[10,100],"type":"scatter"}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"title":"avg_test_math_8_std"},"yaxis":{"domain":[0,1],"title":"pct_4yr"},"hovermode":"closest","showlegend":false},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"data":[{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[27.1317829457364,28.0459770114943,41.4448669201521,41.4634146341463,44.1379310344828,44.3579766536965,51.0309278350515,52.8061224489796,53.4124629080119,65.121412803532,73.1568998109641],"mode":"markers","marker":{"fillcolor":"rgba(31,119,180,1)","color":"steelblue","size":10,"line":{"color":"navy","width":2}},"hoverinfo":"text","text":["School: River <br>HS Graduates (N): 258<br>Average 8th Grade Math Score: -0.057%<br>Seamless 4-yr Enrollment: 27%","School: West Spring Hill <br>HS Graduates (N): 435<br>Average 8th Grade Math Score: -0.170%<br>Seamless 4-yr Enrollment: 28%","School: Upland <br>HS Graduates (N): 263<br>Average 8th Grade Math Score:  0.062%<br>Seamless 4-yr Enrollment: 41%","School: North <br>HS Graduates (N): 205<br>Average 8th Grade Math Score:  0.168%<br>Seamless 4-yr Enrollment: 41%","School: South <br>HS Graduates (N): 435<br>Average 8th Grade Math Score:  0.320%<br>Seamless 4-yr Enrollment: 44%","School: Peak <br>HS Graduates (N): 257<br>Average 8th Grade Math Score:  0.122%<br>Seamless 4-yr Enrollment: 44%","School: City <br>HS Graduates (N): 194<br>Average 8th Grade Math Score:  0.211%<br>Seamless 4-yr Enrollment: 51%","School: White Sands <br>HS Graduates (N): 392<br>Average 8th Grade Math Score:  0.493%<br>Seamless 4-yr Enrollment: 53%","School: Central <br>HS Graduates (N): 337<br>Average 8th Grade Math Score:  0.465%<br>Seamless 4-yr Enrollment: 53%","School: Camino <br>HS Graduates (N): 453<br>Average 8th Grade Math Score:  0.714%<br>Seamless 4-yr Enrollment: 65%","School: Orchard <br>HS Graduates (N): 529<br>Average 8th Grade Math Score:  0.951%<br>Seamless 4-yr Enrollment: 73%"],"type":"scatter","xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":false,"error":false,"message":false,"exercise.df_print":"paged","exercise.setup":"loadData","exercise.checker":"NULL"}</script>
+</div>
+</div>
+<div id="section-adding-traces-best-fit-line" class="section level3">
+<h3>Adding Traces (Best Fit Line)</h3>
+<p>What if we want to add a best fit line to our scatter plot? This is the equivalent of adding another <code>plot_ly</code> graph to the same plot. The syntax is the same, but instead of <code>plot_ly()</code> we use <code>add_trace()</code> after our previous plot.</p>
+<div class="tutorial-exercise" data-label="bestfit" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="25">
+<pre class="text"><code># Necessary to repeat code for plot_2 because of how the html document works (see below)
+plot_2 &lt;- plot_ly(data = schoolData, x = ~avg_test_math_8_std, y = ~pct_4yr, mode = &quot;markers&quot;, type=&quot;scatter&quot;,
+                    marker = list(size=10,
+                                  color = &quot;steelblue&quot;,
+                                  line = list(
+                                    color = &quot;navy&quot;,
+                                    width = 2
+                                  )),
+                  hoverinfo = &quot;text&quot;,             
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Average 8th Grade Math Score: &quot;, format(schoolData$avg_test_math_8_std, digits=2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless 4-yr Enrollment: &quot;, format(schoolData$pct_4yr, digits=2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  )
+                )
+
+# Add best fit line
+fit &lt;- lm(pct_4yr ~ avg_test_math_8_std, data = schoolData)
+plot_3 &lt;- plot_2 %&gt;%
+  add_trace(x = schoolData$avg_test_math_8_std, y = fitted(fit), mode = &quot;lines+markers&quot;, line = list(color = &quot;black&quot;))
+plot_3</code></pre>
+<div id="4510708e4c99" style="width:624px;height:384px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="4510708e4c99">{"x":{"visdat":{"45101f5b5037":["function () ","plotlyVisDat"]},"cur_data":"45101f5b5037","attrs":{"45101f5b5037":{"x":{},"y":{},"mode":"markers","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":{},"alpha":1,"sizes":[10,100],"type":"scatter"},"45101f5b5037.1":{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[33.263269700949,28.7548894314638,38.028338703815,42.2727751937231,48.3489161729556,40.4423586504416,43.9968846814615,55.244518378535,54.1341844439441,64.0687407760038,73.554898872955],"mode":"lines+markers","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":{},"alpha":1,"sizes":[10,100],"type":"scatter","line":{"color":"black"}}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"title":"avg_test_math_8_std"},"yaxis":{"domain":[0,1],"title":"pct_4yr"},"hovermode":"closest","showlegend":true},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"data":[{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[27.1317829457364,28.0459770114943,41.4448669201521,41.4634146341463,44.1379310344828,44.3579766536965,51.0309278350515,52.8061224489796,53.4124629080119,65.121412803532,73.1568998109641],"mode":"markers","marker":{"fillcolor":"rgba(31,119,180,1)","color":"steelblue","size":10,"line":{"color":"navy","width":2}},"hoverinfo":"text","text":["School: River <br>HS Graduates (N): 258<br>Average 8th Grade Math Score: -0.057%<br>Seamless 4-yr Enrollment: 27%","School: West Spring Hill <br>HS Graduates (N): 435<br>Average 8th Grade Math Score: -0.170%<br>Seamless 4-yr Enrollment: 28%","School: Upland <br>HS Graduates (N): 263<br>Average 8th Grade Math Score:  0.062%<br>Seamless 4-yr Enrollment: 41%","School: North <br>HS Graduates (N): 205<br>Average 8th Grade Math Score:  0.168%<br>Seamless 4-yr Enrollment: 41%","School: South <br>HS Graduates (N): 435<br>Average 8th Grade Math Score:  0.320%<br>Seamless 4-yr Enrollment: 44%","School: Peak <br>HS Graduates (N): 257<br>Average 8th Grade Math Score:  0.122%<br>Seamless 4-yr Enrollment: 44%","School: City <br>HS Graduates (N): 194<br>Average 8th Grade Math Score:  0.211%<br>Seamless 4-yr Enrollment: 51%","School: White Sands <br>HS Graduates (N): 392<br>Average 8th Grade Math Score:  0.493%<br>Seamless 4-yr Enrollment: 53%","School: Central <br>HS Graduates (N): 337<br>Average 8th Grade Math Score:  0.465%<br>Seamless 4-yr Enrollment: 53%","School: Camino <br>HS Graduates (N): 453<br>Average 8th Grade Math Score:  0.714%<br>Seamless 4-yr Enrollment: 65%","School: Orchard <br>HS Graduates (N): 529<br>Average 8th Grade Math Score:  0.951%<br>Seamless 4-yr Enrollment: 73%"],"type":"scatter","xaxis":"x","yaxis":"y","frame":null},{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[33.263269700949,28.7548894314638,38.028338703815,42.2727751937231,48.3489161729556,40.4423586504416,43.9968846814615,55.244518378535,54.1341844439441,64.0687407760038,73.554898872955],"mode":"lines+markers","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":["School: River <br>HS Graduates (N): 258<br>Average 8th Grade Math Score: -0.057%<br>Seamless 4-yr Enrollment: 27%","School: West Spring Hill <br>HS Graduates (N): 435<br>Average 8th Grade Math Score: -0.170%<br>Seamless 4-yr Enrollment: 28%","School: Upland <br>HS Graduates (N): 263<br>Average 8th Grade Math Score:  0.062%<br>Seamless 4-yr Enrollment: 41%","School: North <br>HS Graduates (N): 205<br>Average 8th Grade Math Score:  0.168%<br>Seamless 4-yr Enrollment: 41%","School: South <br>HS Graduates (N): 435<br>Average 8th Grade Math Score:  0.320%<br>Seamless 4-yr Enrollment: 44%","School: Peak <br>HS Graduates (N): 257<br>Average 8th Grade Math Score:  0.122%<br>Seamless 4-yr Enrollment: 44%","School: City <br>HS Graduates (N): 194<br>Average 8th Grade Math Score:  0.211%<br>Seamless 4-yr Enrollment: 51%","School: White Sands <br>HS Graduates (N): 392<br>Average 8th Grade Math Score:  0.493%<br>Seamless 4-yr Enrollment: 53%","School: Central <br>HS Graduates (N): 337<br>Average 8th Grade Math Score:  0.465%<br>Seamless 4-yr Enrollment: 53%","School: Camino <br>HS Graduates (N): 453<br>Average 8th Grade Math Score:  0.714%<br>Seamless 4-yr Enrollment: 65%","School: Orchard <br>HS Graduates (N): 529<br>Average 8th Grade Math Score:  0.951%<br>Seamless 4-yr Enrollment: 73%"],"type":"scatter","line":{"fillcolor":"rgba(255,127,14,1)","color":"black"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":false,"error":false,"message":false,"exercise.df_print":"paged","exercise.setup":"loadData","exercise.checker":"NULL"}</script>
+</div>
+<p>Note: In a regular R file we do not have to repeat the code for <code>plot_2</code> before the <code>add_trace</code>. This is a limitation of the web-browser-based environment we are working in. Keep in mind as you work through the exercises that you will have to copy code from earlier exercises if you want to call plot objects from those exercises.</p>
+</div>
+<div id="section-layout-titles-and-more" class="section level3">
+<h3>Layout: Titles and More</h3>
+<p>Other features we may want to add are simple lines for the agency average and add titles. These all go in <code>layout()</code>. The options we will use in <code>layout()</code> are:</p>
+<ul>
+<li><p><code>title</code></p></li>
+<li><p><code>xaxis</code> (<code>title</code>, <code>range</code>, <code>zeroline</code>, <code>showline</code>)</p></li>
+<li><p><code>yaxis</code> (<code>title</code>, <code>range</code>)</p></li>
+<li><p><code>margin</code></p></li>
+<li><p><code>showlegend</code></p></li>
+<li><p><code>shapes</code></p></li>
+<li><p><code>annotations</code></p></li>
+</ul>
+<p>But there are many more things you can add!</p>
+<div class="tutorial-exercise-support" data-label="loadData2" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code># Note: Repeating data load due to error in learnr package
+schoolData &lt;- structure(list(last_hs_name = c(&quot;River &quot;, &quot;West Spring Hill &quot;, 
+&quot;Upland &quot;, &quot;North &quot;, &quot;South &quot;, &quot;Peak &quot;, &quot;City &quot;, &quot;White Sands &quot;, 
+&quot;Central &quot;, &quot;Camino &quot;, &quot;Orchard &quot;), hs_diploma = c(258L, 435L, 
+263L, 205L, 435L, 257L, 194L, 392L, 337L, 453L, 529L), pct_4yr = c(27.1317829457364, 
+28.0459770114943, 41.4448669201521, 41.4634146341463, 44.1379310344828, 
+44.3579766536965, 51.0309278350515, 52.8061224489796, 53.4124629080119, 
+65.121412803532, 73.1568998109641), pct_2yr = c(32.5581395348837, 
+26.6666666666667, 18.6311787072243, 25.3658536585366, 27.816091954023, 
+29.5719844357977, 16.4948453608247, 26.2755102040816, 24.6290801186944, 
+21.1920529801325, 14.1776937618147), pct_4yr_delayed = c(0, 1.60919540229885, 
+1.14068441064639, 0.48780487804878, 1.14942528735632, 0, 0.515463917525773, 
+1.02040816326531, 1.48367952522255, 1.32450331125828, 1.13421550094518
+), pct_2yr_delayed = c(3.87596899224806, 5.97701149425287, 4.94296577946768, 
+5.85365853658537, 4.13793103448276, 4.28015564202335, 3.09278350515464, 
+3.31632653061224, 2.67062314540059, 0.662251655629139, 1.32325141776938
+), avg_test_math_8_std = c(-0.0572368162790698, -0.17006474045977, 
+0.0620150684410646, 0.168237465365854, 0.320300586206897, 0.122428973929961, 
+0.21138548814433, 0.492871761734694, 0.46508424925816, 0.713709099337748, 
+0.951112215879017), order_2yr = c(11L, 8L, 3L, 6L, 9L, 10L, 2L, 
+7L, 5L, 4L, 1L), order_4yr = 1:11), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;, &quot;order_2yr&quot;, &quot;order_4yr&quot;), row.names = c(NA, 
+-11L), class = c(&quot;tbl_df&quot;, &quot;tbl&quot;, &quot;data.frame&quot;))
+
+agencyData &lt;- structure(list(last_hs_name = &quot;Agency Average&quot;, hs_diploma = 3758L, 
+    pct_4yr = 49.4944119212347, pct_2yr = 23.6029803086748, pct_4yr_delayed = 1.0111761575306, 
+    pct_2yr_delayed = 3.40606705694518, avg_test_math_8_std = 0.359298796035125), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;), row.names = c(NA, -1L), class = c(&quot;tbl_df&quot;, 
+&quot;tbl&quot;, &quot;data.frame&quot;))</code></pre>
+</div>
+<div class="tutorial-exercise" data-label="layout-scatter" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="30">
+<pre class="text"><code># Necessary to repeat code for plot_2 because of how the html document works (see below)
+plot_2 &lt;- plot_ly(data = schoolData, x = ~avg_test_math_8_std, y = ~pct_4yr, mode = &quot;markers&quot;, type=&quot;scatter&quot;,
+                    marker = list(size=10,
+                                  color = &quot;steelblue&quot;,
+                                  line = list(
+                                    color = &quot;navy&quot;,
+                                    width = 2
+                                  )),
+                  hoverinfo = &quot;text&quot;,             
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Average 8th Grade Math Score: &quot;, format(schoolData$avg_test_math_8_std, digits=2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless 4-yr Enrollment: &quot;, format(schoolData$pct_4yr, digits=2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  )
+                )
+
+# Add best fit line
+fit &lt;- lm(pct_4yr ~ avg_test_math_8_std, data = schoolData)
+plot_3 &lt;- plot_2 %&gt;%
+  add_trace(x = schoolData$avg_test_math_8_std, y = fitted(fit), mode = &quot;lines&quot;, line = list(color = &quot;black&quot;))
+
+# Create agency average lines using shapes - these lines will be added in next step
+# Average 8th grade score
+avg_8th_line &lt;- list(
+  type = &#39;line&#39;,
+  line = list(color = &quot;orange&quot;, dash = &#39;dash&#39;),
+  x0 = agencyData$avg_test_math_8_std,
+  x1 = agencyData$avg_test_math_8_std,
+  y0 = 0,
+  y1 = 100
+)
+# Average enrollment
+avg_4yr_line &lt;- list(
+  type = &#39;line&#39;,
+  line = list(color = &quot;orange&quot;, dash = &#39;dash&#39;),
+  x0 = -.5,
+  x1 = 1,
+  y0 = agencyData$pct_4yr,
+  y1 = agencyData$pct_4yr
+)
+# Average 8th grade line label
+avg_8th_label &lt;- list(
+  text=&quot;Avg 8th Grade Score&quot;,
+  x=agencyData$avg_test_math_8_std,
+  y=100,
+  showarrow = FALSE,
+  xanchor = &#39;left&#39;,
+  yanchor = &#39;top&#39;
+)
+# Average enrollment line label
+avg_4yr_label &lt;- list(
+  text=&quot;Average 4-year Enrollment &quot;,
+  x=-.5,
+  y=agencyData$pct_4yr,
+  showarrow = FALSE,
+  xanchor = &#39;left&#39;,
+  yanchor = &#39;bottom&#39;
+)
+
+# Add layout - start with plot_3
+plot_3_with_opts &lt;- layout(plot_3, 
+             title = &quot;Relationship between Average Four-Year College Graduation &lt;br&gt; and Average 8th Grade Achivement for High Schools&quot;,
+             xaxis = list(
+               title = &quot;Average 8th Grade Math Test Score (Std. Dev. Units)&quot;,
+               range = c(-.5, 1),
+               zeroline = TRUE,
+               showline = TRUE
+             ),
+             yaxis = list(
+               title = &quot;High School Graduates (%)&quot;,
+               range = c(0,100)
+             ),
+             margin = list(b = 100, t = 100),
+             showlegend = FALSE,
+             shapes = list(avg_8th_line, avg_4yr_line),
+             annotations = list(avg_8th_label, avg_4yr_label)
+)
+plot_3_with_opts</code></pre>
+<div id="451044414505" style="width:624px;height:384px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="451044414505">{"x":{"visdat":{"451034df3edd":["function () ","plotlyVisDat"]},"cur_data":"451034df3edd","attrs":{"451034df3edd":{"x":{},"y":{},"mode":"markers","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":{},"alpha":1,"sizes":[10,100],"type":"scatter"},"451034df3edd.1":{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[33.263269700949,28.7548894314638,38.028338703815,42.2727751937231,48.3489161729556,40.4423586504416,43.9968846814615,55.244518378535,54.1341844439441,64.0687407760038,73.554898872955],"mode":"lines","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":{},"alpha":1,"sizes":[10,100],"type":"scatter","line":{"color":"black"}}},"layout":{"margin":{"b":100,"l":60,"t":100,"r":10},"title":"Relationship between Average Four-Year College Graduation <br> and Average 8th Grade Achivement for High Schools","xaxis":{"domain":[0,1],"title":"Average 8th Grade Math Test Score (Std. Dev. Units)","range":[-0.5,1],"zeroline":true,"showline":true},"yaxis":{"domain":[0,1],"title":"High School Graduates (%)","range":[0,100]},"showlegend":false,"shapes":[{"type":"line","line":{"color":"orange","dash":"dash"},"x0":0.359298796035125,"x1":0.359298796035125,"y0":0,"y1":100},{"type":"line","line":{"color":"orange","dash":"dash"},"x0":-0.5,"x1":1,"y0":49.4944119212347,"y1":49.4944119212347}],"annotations":[{"text":"Avg 8th Grade Score","x":0.359298796035125,"y":100,"showarrow":false,"xanchor":"left","yanchor":"top"},{"text":"Average 4-year Enrollment ","x":-0.5,"y":49.4944119212347,"showarrow":false,"xanchor":"left","yanchor":"bottom"}],"hovermode":"closest"},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"data":[{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[27.1317829457364,28.0459770114943,41.4448669201521,41.4634146341463,44.1379310344828,44.3579766536965,51.0309278350515,52.8061224489796,53.4124629080119,65.121412803532,73.1568998109641],"mode":"markers","marker":{"fillcolor":"rgba(31,119,180,1)","color":"steelblue","size":10,"line":{"color":"navy","width":2}},"hoverinfo":"text","text":["School: River <br>HS Graduates (N): 258<br>Average 8th Grade Math Score: -0.057%<br>Seamless 4-yr Enrollment: 27%","School: West Spring Hill <br>HS Graduates (N): 435<br>Average 8th Grade Math Score: -0.170%<br>Seamless 4-yr Enrollment: 28%","School: Upland <br>HS Graduates (N): 263<br>Average 8th Grade Math Score:  0.062%<br>Seamless 4-yr Enrollment: 41%","School: North <br>HS Graduates (N): 205<br>Average 8th Grade Math Score:  0.168%<br>Seamless 4-yr Enrollment: 41%","School: South <br>HS Graduates (N): 435<br>Average 8th Grade Math Score:  0.320%<br>Seamless 4-yr Enrollment: 44%","School: Peak <br>HS Graduates (N): 257<br>Average 8th Grade Math Score:  0.122%<br>Seamless 4-yr Enrollment: 44%","School: City <br>HS Graduates (N): 194<br>Average 8th Grade Math Score:  0.211%<br>Seamless 4-yr Enrollment: 51%","School: White Sands <br>HS Graduates (N): 392<br>Average 8th Grade Math Score:  0.493%<br>Seamless 4-yr Enrollment: 53%","School: Central <br>HS Graduates (N): 337<br>Average 8th Grade Math Score:  0.465%<br>Seamless 4-yr Enrollment: 53%","School: Camino <br>HS Graduates (N): 453<br>Average 8th Grade Math Score:  0.714%<br>Seamless 4-yr Enrollment: 65%","School: Orchard <br>HS Graduates (N): 529<br>Average 8th Grade Math Score:  0.951%<br>Seamless 4-yr Enrollment: 73%"],"type":"scatter","xaxis":"x","yaxis":"y","frame":null},{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[33.263269700949,28.7548894314638,38.028338703815,42.2727751937231,48.3489161729556,40.4423586504416,43.9968846814615,55.244518378535,54.1341844439441,64.0687407760038,73.554898872955],"mode":"lines+markers","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":["School: River <br>HS Graduates (N): 258<br>Average 8th Grade Math Score: -0.057%<br>Seamless 4-yr Enrollment: 27%","School: West Spring Hill <br>HS Graduates (N): 435<br>Average 8th Grade Math Score: -0.170%<br>Seamless 4-yr Enrollment: 28%","School: Upland <br>HS Graduates (N): 263<br>Average 8th Grade Math Score:  0.062%<br>Seamless 4-yr Enrollment: 41%","School: North <br>HS Graduates (N): 205<br>Average 8th Grade Math Score:  0.168%<br>Seamless 4-yr Enrollment: 41%","School: South <br>HS Graduates (N): 435<br>Average 8th Grade Math Score:  0.320%<br>Seamless 4-yr Enrollment: 44%","School: Peak <br>HS Graduates (N): 257<br>Average 8th Grade Math Score:  0.122%<br>Seamless 4-yr Enrollment: 44%","School: City <br>HS Graduates (N): 194<br>Average 8th Grade Math Score:  0.211%<br>Seamless 4-yr Enrollment: 51%","School: White Sands <br>HS Graduates (N): 392<br>Average 8th Grade Math Score:  0.493%<br>Seamless 4-yr Enrollment: 53%","School: Central <br>HS Graduates (N): 337<br>Average 8th Grade Math Score:  0.465%<br>Seamless 4-yr Enrollment: 53%","School: Camino <br>HS Graduates (N): 453<br>Average 8th Grade Math Score:  0.714%<br>Seamless 4-yr Enrollment: 65%","School: Orchard <br>HS Graduates (N): 529<br>Average 8th Grade Math Score:  0.951%<br>Seamless 4-yr Enrollment: 73%"],"type":"scatter","line":{"fillcolor":"rgba(255,127,14,1)","color":"black"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":false,"error":false,"message":false,"exercise.df_print":"paged","exercise.setup":"loadData2","exercise.checker":"NULL"}</script>
+</div>
+</div>
+<div id="section-review" class="section level3">
+<h3>Review</h3>
+<p>Recap:</p>
+<ol style="list-style-type: decimal">
+<li><p>Start your graph using the basic <code>plot_ly()</code> arguments such as <code>x</code>, <code>y</code>, and <code>data</code>.</p></li>
+<li><p>Modify bars or markers, and hover text also inside <code>plot_ly()</code></p></li>
+<li><p>To add more data in the <code>plot_ly()</code> format to the same graph, use <code>add_trace()</code> and put in the <code>plot_ly()</code> arguments</p></li>
+<li><p>Modify titles, axes, legends, and add basic shape lines and text using <code>layout()</code></p></li>
+</ol>
+<p>Now it’s your turn.</p>
+</div>
+</div>
+<div id="section-plotly-exercises" class="section level2">
+<h2>Plotly Exercises</h2>
+<div class="tutorial-exercise-support" data-label="loadData3" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code># Note: Repeating data load due to error in learnr package
+schoolData &lt;- structure(list(last_hs_name = c(&quot;River &quot;, &quot;West Spring Hill &quot;, 
+&quot;Upland &quot;, &quot;North &quot;, &quot;South &quot;, &quot;Peak &quot;, &quot;City &quot;, &quot;White Sands &quot;, 
+&quot;Central &quot;, &quot;Camino &quot;, &quot;Orchard &quot;), hs_diploma = c(258L, 435L, 
+263L, 205L, 435L, 257L, 194L, 392L, 337L, 453L, 529L), pct_4yr = c(27.1317829457364, 
+28.0459770114943, 41.4448669201521, 41.4634146341463, 44.1379310344828, 
+44.3579766536965, 51.0309278350515, 52.8061224489796, 53.4124629080119, 
+65.121412803532, 73.1568998109641), pct_2yr = c(32.5581395348837, 
+26.6666666666667, 18.6311787072243, 25.3658536585366, 27.816091954023, 
+29.5719844357977, 16.4948453608247, 26.2755102040816, 24.6290801186944, 
+21.1920529801325, 14.1776937618147), pct_4yr_delayed = c(0, 1.60919540229885, 
+1.14068441064639, 0.48780487804878, 1.14942528735632, 0, 0.515463917525773, 
+1.02040816326531, 1.48367952522255, 1.32450331125828, 1.13421550094518
+), pct_2yr_delayed = c(3.87596899224806, 5.97701149425287, 4.94296577946768, 
+5.85365853658537, 4.13793103448276, 4.28015564202335, 3.09278350515464, 
+3.31632653061224, 2.67062314540059, 0.662251655629139, 1.32325141776938
+), avg_test_math_8_std = c(-0.0572368162790698, -0.17006474045977, 
+0.0620150684410646, 0.168237465365854, 0.320300586206897, 0.122428973929961, 
+0.21138548814433, 0.492871761734694, 0.46508424925816, 0.713709099337748, 
+0.951112215879017), order_2yr = c(11L, 8L, 3L, 6L, 9L, 10L, 2L, 
+7L, 5L, 4L, 1L), order_4yr = 1:11), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;, &quot;order_2yr&quot;, &quot;order_4yr&quot;), row.names = c(NA, 
+-11L), class = c(&quot;tbl_df&quot;, &quot;tbl&quot;, &quot;data.frame&quot;))
+
+agencyData &lt;- structure(list(last_hs_name = &quot;Agency Average&quot;, hs_diploma = 3758L, 
+    pct_4yr = 49.4944119212347, pct_2yr = 23.6029803086748, pct_4yr_delayed = 1.0111761575306, 
+    pct_2yr_delayed = 3.40606705694518, avg_test_math_8_std = 0.359298796035125), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;), row.names = c(NA, -1L), class = c(&quot;tbl_df&quot;, 
+&quot;tbl&quot;, &quot;data.frame&quot;))</code></pre>
+</div>
+<div id="section-basic-bar-graph-and-custom-tooltips" class="section level3">
+<h3>Basic Bar Graph (and Custom Tooltips)</h3>
+<p>Instead of a scatter plot we will be building a bar graph as an exercise. Each bar will be a school and our outcome will be 4-year enrollment. Because we want the bars sorted from lowest to highest by enrollment, we use <code>order_4yr</code> as our <code>x</code> variable. We will add the school names to the x-axis in a later step. In the exercise below, there is an outline of the graph code. Input the missing information. Remember, you can return to the first page if you need to see variable names and refer to the previous scatter plot example. Feel free to change the colors or other features. A full list of colors is available <a href="https://www.w3.org/TR/css3-color/#svg-color">here</a>. Note: You could also use RGB or hex colors.</p>
+<div class="tutorial-exercise" data-label="basic-bar" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>bar_1 &lt;- plot_ly(data = schoolData, x = ?, y = ?, type=&quot;?&quot;, name=&quot;Seamless&quot;,
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless Enrollment: &quot;, format(schoolData$pct_4yr, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Delayed Enrollment: &quot;, format(schoolData$pct_4yr_delayed, digits = 2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  ),
+                  hoverinfo = &quot;?&quot;,
+                  color = I(&quot;navy&quot;)
+                  )
+bar_1</code></pre>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.setup":"loadData3","exercise.checker":"NULL"}</script>
+</div>
+<div class="tutorial-exercise-support" data-label="basic-bar-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>bar_1 &lt;- plot_ly(data = schoolData, x = ~order_4yr, y = ~pct_4yr, type=&quot;bar&quot;, name=&quot;Seamless&quot;,
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless Enrollment: &quot;, format(schoolData$pct_4yr, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Delayed Enrollment: &quot;, format(schoolData$pct_4yr_delayed, digits = 2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  ),
+                  hoverinfo = &quot;text&quot;,
+                  color = I(&quot;navy&quot;)
+                  )
+bar_1</code></pre>
+</div>
+<p>Clicking the solution button will review the solution. Did you get it?</p>
+</div>
+<div id="section-add-additional-bars-side-by-side" class="section level3">
+<h3>Add Additional Bars Side-By-Side</h3>
+<p>Let’s also add the delayed enrollment percentages for each school to our graph. This is equivalent to adding another <code>plot_ly</code> graph, so we use <code>add_trace</code>. We have to add the trace to <code>bar_1</code> so <code>bar_1</code> is already filled in from the previous exercise. If you want to use your own graph, copy and paste your code from the previous exercise. Complete the outline for <code>add_trace()</code>.</p>
+<div class="tutorial-exercise" data-label="bar-add-trace" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code># bar_1 complete or add your code here
+bar_1 &lt;- plot_ly(data = schoolData, x = ~order_4yr, y = ~pct_4yr, type=&quot;bar&quot;, name=&quot;Seamless&quot;,
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless Enrollment: &quot;, format(schoolData$pct_4yr, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Delayed Enrollment: &quot;, format(schoolData$pct_4yr_delayed, digits = 2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  ),
+                  hoverinfo = &quot;text&quot;,
+                  color = I(&quot;navy&quot;)
+                  )
+# End bar_1 or your code
+
+# ***Fill in add_trace()***
+bar_2 &lt;- add_trace(?, x = ?, y = ?, 2, name = &quot;Delayed&quot;, 
+                  color = I(&quot;orange&quot;),
+                  hoverinfo = &quot;none&quot;
+                  )
+bar_2</code></pre>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.setup":"loadData3","exercise.checker":"NULL"}</script>
+</div>
+<div class="tutorial-exercise-support" data-label="bar-add-trace-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>bar_1 &lt;- plot_ly(data = schoolData, x = ~order_4yr, y = ~pct_4yr, type=&quot;bar&quot;, name=&quot;Seamless&quot;,
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless Enrollment: &quot;, format(schoolData$pct_4yr, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Delayed Enrollment: &quot;, format(schoolData$pct_4yr_delayed, digits = 2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  ),
+                  hoverinfo = &quot;text&quot;,
+                  color = I(&quot;navy&quot;)
+                  )
+bar_2 &lt;- add_trace(bar_1, x = ~order_4yr, y = ~pct_4yr_delayed, 2, name = &quot;Delayed&quot;, 
+                  color = I(&quot;orange&quot;),
+                  hoverinfo = &quot;none&quot;
+                  )
+bar_2</code></pre>
+</div>
+</div>
+<div id="section-stacking-bars" class="section level3">
+<h3>Stacking Bars</h3>
+<p>To stack the bars, we use <code>layout()</code> and add <code>barmode = &quot;stack&quot;</code>. Add this below.</p>
+<div class="tutorial-exercise" data-label="bar-stack" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="20">
+<pre class="text"><code># bar_1 complete or add your code here
+bar_1 &lt;- plot_ly(data = schoolData, x = ~order_4yr, y = ~pct_4yr, type=&quot;bar&quot;, name=&quot;Seamless&quot;,
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless Enrollment: &quot;, format(schoolData$pct_4yr, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Delayed Enrollment: &quot;, format(schoolData$pct_4yr_delayed, digits = 2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  ),
+                  hoverinfo = &quot;text&quot;,
+                  color = I(&quot;navy&quot;)
+                  )
+# End bar_1 or your code
+
+# bar_2 complete or add your code here
+bar_2 &lt;- add_trace(bar_1, x = ~order_4yr, y = ~pct_4yr_delayed, 2, name = &quot;Delayed&quot;, 
+                  color = I(&quot;orange&quot;),
+                  hoverinfo = &quot;none&quot;
+                  )
+# End bar_2 or your code
+
+# ***Fill in bar_3***
+bar_3 &lt;- layout(?, barmode = &quot;?&quot;)
+bar_3</code></pre>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.setup":"loadData3","exercise.checker":"NULL"}</script>
+</div>
+<div class="tutorial-exercise-support" data-label="bar-stack-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>bar_1 &lt;- plot_ly(data = schoolData, x = ~order_4yr, y = ~pct_4yr, type=&quot;bar&quot;, name=&quot;Seamless&quot;,
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless Enrollment: &quot;, format(schoolData$pct_4yr, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Delayed Enrollment: &quot;, format(schoolData$pct_4yr_delayed, digits = 2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  ),
+                  hoverinfo = &quot;text&quot;,
+                  color = I(&quot;navy&quot;)
+                  )
+bar_2 &lt;- add_trace(bar_1, x = ~order_4yr, y = ~pct_4yr_delayed, 2, name = &quot;Delayed&quot;, 
+                  color = I(&quot;orange&quot;),
+                  hoverinfo = &quot;none&quot;
+                  )
+bar_3 &lt;- layout(bar_2, barmode = &quot;stack&quot;)
+bar_3</code></pre>
+</div>
+</div>
+<div id="section-add-lines-and-labels" class="section level3">
+<h3>Add Lines and Labels</h3>
+<p>Just like in the previous scatter example, we will now add lines and text, and change the layout to add titles.</p>
+<div class="tutorial-exercise" data-label="bar-layout" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="30">
+<pre class="text"><code># bar_1 complete or add your code here
+bar_1 &lt;- plot_ly(data = schoolData, x = ~order_4yr, y = ~pct_4yr, type=&quot;bar&quot;, name=&quot;Seamless&quot;,
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless Enrollment: &quot;, format(schoolData$pct_4yr, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Delayed Enrollment: &quot;, format(schoolData$pct_4yr_delayed, digits = 2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  ),
+                  hoverinfo = &quot;text&quot;,
+                  color = I(&quot;navy&quot;)
+                  )
+# End bar_1 or your code
+
+# bar_2 complete or add your code here
+bar_2 &lt;- add_trace(bar_1, x = ~order_4yr, y = ~pct_4yr_delayed, 2, name = &quot;Delayed&quot;, 
+                  color = I(&quot;orange&quot;),
+                  hoverinfo = &quot;none&quot;
+                  )
+# End bar_2 or your code
+
+# bar_3 complete or add your code here
+bar_3 &lt;- layout(bar_2, barmode = &quot;stack&quot;)
+# End bar_3 or your code
+
+# Added lines and text - nothing to do here, filled in for you
+# Average enrollment line 
+avg_line &lt;- list(
+  type = &#39;line&#39;,
+  line = list(color = &quot;black&quot;, dash = &#39;dash&#39;),
+  x0 = 0,
+  x1 = 11,
+  y0 = agencyData$pct_4yr,
+  y1 = agencyData$pct_4yr
+)
+# Average enrollment line label - Nothing to fill in here, done for you
+# X position chosen by looking at number of schools and divide that in half for the x position 
+avg_line_label &lt;- list(
+  text=&quot;Average 4-year Enrollment&quot;,
+  x=5.5,
+  y=agencyData$pct_4yr,
+  showarrow = FALSE,
+  xanchor = &#39;center&#39;,
+  yanchor = &#39;bottom&#39;
+)
+
+# ***Fill in the missing information in layout outline***
+bar_3_with_opts &lt;- layout(?, 
+                           title = &quot;Average 4-Year Seamless and Delayed Enrollment by High School&quot;,
+                           xaxis = ?(
+                             title = &quot;High School&quot;,
+                             tickvals = 1:length(schoolData$last_hs_name),
+                             ticktext = schoolData$last_hs_name,
+                             zeroline = ?,
+                             showline = ?
+                           ),
+                           yaxis = ?(
+                             title = &quot;High School Graduates (%)&quot;,
+                             range = c(0,?)
+                           ),
+                           margin = list(b = 100, t = 100),
+                           shapes = list(?),
+                           annotations = list(?)
+)
+bar_3_with_opts</code></pre>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.setup":"loadData3","exercise.checker":"NULL"}</script>
+</div>
+<div class="tutorial-exercise-support" data-label="bar-layout-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>bar_1 &lt;- plot_ly(data = schoolData, x = ~order_4yr, y = ~pct_4yr, type=&quot;bar&quot;, name=&quot;Seamless&quot;,
+                  text = ~paste(
+                    &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                    &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                    &quot;Seamless Enrollment: &quot;, format(schoolData$pct_4yr, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                    &quot;Delayed Enrollment: &quot;, format(schoolData$pct_4yr_delayed, digits = 2), &quot;%&quot;,
+                    sep=&quot;&quot;
+                  ),
+                  hoverinfo = &quot;text&quot;,
+                  color = I(&quot;navy&quot;)
+                  )
+bar_2 &lt;- add_trace(bar_1, x = ~order_4yr, y = ~pct_4yr_delayed, 2, name = &quot;Delayed&quot;, 
+                  color = I(&quot;orange&quot;),
+                  hoverinfo = &quot;none&quot;
+                  )
+bar_3 &lt;- layout(bar_2, barmode = &quot;stack&quot;)
+
+# Average enrollment line
+avg_line &lt;- list(
+  type = &#39;line&#39;,
+  line = list(color = &quot;black&quot;, dash = &#39;dash&#39;),
+  x0 = 0,
+  x1 = 11,
+  y0 = agencyData$pct_4yr,
+  y1 = agencyData$pct_4yr
+)
+# Average enrollment line label
+# X position chosen by looking at number of schools and dividing that in half, could be done dynamically
+avg_line_label &lt;- list(
+  text=&quot;Average 4-year Enrollment&quot;,
+  x=5.5,
+  y=agencyData$pct_4yr,
+  showarrow = FALSE,
+  xanchor = &#39;center&#39;,
+  yanchor = &#39;bottom&#39;
+)
+
+bar_3_with_opts &lt;- layout(bar_3, 
+                           title = &quot;Average 4-Year Seamless and Delayed Enrollment by High School&quot;,
+                           xaxis = list(
+                             title = &quot;High School&quot;,
+                             tickvals = 1:length(schoolData$last_hs_name),
+                             ticktext = schoolData$last_hs_name,
+                             zeroline = TRUE,
+                             showline = TRUE
+                           ),
+                           yaxis = list(
+                             title = &quot;High School Graduates (%)&quot;,
+                             range = c(0,100)
+                           ),
+                           margin = list(b = 100, t = 100),
+                           shapes = list(avg_line),
+                           annotations = list(avg_line_label)
+)
+bar_3_with_opts</code></pre>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading tutorial-panel-heading">Quiz</div>
+<table class="table quiz-table">
+<tr>
+<td>
+
+<div id="htmlwidget-8adba622073f50cc897f" style="width:100%;height:auto;", class = "quiz html-widget">
+<div class="panel panel-default">
+<div class="panel-body quizArea">
+</div>
+</div>
+</div>
+
+<script type="application/json" data-for="htmlwidget-8adba622073f50cc897f">{"x":{"question":"Check your understanding by filling in the blanks. _____ set the categorical range for the x-axis ticks and _____ labeled the ticks with the high school names.","answers":[{"option":"ticktext, tickvals","correct":false,"message":null},{"option":"range, ticktext","correct":false,"message":null},{"option":"range, title","correct":false,"message":null},{"option":"tickvals, ticktext","correct":true,"message":null}],"label":"xaxis-question-1","skipStartButton":true,"perQuestionResponseAnswers":true,"perQuestionResponseMessaging":true,"preventUnanswered":true,"displayQuestionCount":false,"displayQuestionNumber":false,"disableRanking":true,"nextQuestionText":"","checkAnswerText":"Submit Answer","allowRetry":false,"randomSortAnswers":false,"json":{"info":{"name":"","main":""},"questions":[{"q":"Check your understanding by filling in the blanks. _____ set the categorical range for the x-axis ticks and _____ labeled the ticks with the high school names.","a":[{"option":"ticktext, tickvals","correct":false,"message":null},{"option":"range, ticktext","correct":false,"message":null},{"option":"range, title","correct":false,"message":null},{"option":"tickvals, ticktext","correct":true,"message":null}],"correct":"Correct!","incorrect":"Incorrect."}]}},"evals":[],"jsHooks":[]}</script>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div id="section-quick-aside-on-functions" class="section level2">
+<h2>Quick Aside on Functions</h2>
+<div class="tutorial-exercise-support" data-label="loadData4" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code># Note: Repeating data load due to error in learnr package
+schoolData &lt;- structure(list(last_hs_name = c(&quot;River &quot;, &quot;West Spring Hill &quot;, 
+&quot;Upland &quot;, &quot;North &quot;, &quot;South &quot;, &quot;Peak &quot;, &quot;City &quot;, &quot;White Sands &quot;, 
+&quot;Central &quot;, &quot;Camino &quot;, &quot;Orchard &quot;), hs_diploma = c(258L, 435L, 
+263L, 205L, 435L, 257L, 194L, 392L, 337L, 453L, 529L), pct_4yr = c(27.1317829457364, 
+28.0459770114943, 41.4448669201521, 41.4634146341463, 44.1379310344828, 
+44.3579766536965, 51.0309278350515, 52.8061224489796, 53.4124629080119, 
+65.121412803532, 73.1568998109641), pct_2yr = c(32.5581395348837, 
+26.6666666666667, 18.6311787072243, 25.3658536585366, 27.816091954023, 
+29.5719844357977, 16.4948453608247, 26.2755102040816, 24.6290801186944, 
+21.1920529801325, 14.1776937618147), pct_4yr_delayed = c(0, 1.60919540229885, 
+1.14068441064639, 0.48780487804878, 1.14942528735632, 0, 0.515463917525773, 
+1.02040816326531, 1.48367952522255, 1.32450331125828, 1.13421550094518
+), pct_2yr_delayed = c(3.87596899224806, 5.97701149425287, 4.94296577946768, 
+5.85365853658537, 4.13793103448276, 4.28015564202335, 3.09278350515464, 
+3.31632653061224, 2.67062314540059, 0.662251655629139, 1.32325141776938
+), avg_test_math_8_std = c(-0.0572368162790698, -0.17006474045977, 
+0.0620150684410646, 0.168237465365854, 0.320300586206897, 0.122428973929961, 
+0.21138548814433, 0.492871761734694, 0.46508424925816, 0.713709099337748, 
+0.951112215879017), order_2yr = c(11L, 8L, 3L, 6L, 9L, 10L, 2L, 
+7L, 5L, 4L, 1L), order_4yr = 1:11), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;, &quot;order_2yr&quot;, &quot;order_4yr&quot;), row.names = c(NA, 
+-11L), class = c(&quot;tbl_df&quot;, &quot;tbl&quot;, &quot;data.frame&quot;))
+
+agencyData &lt;- structure(list(last_hs_name = &quot;Agency Average&quot;, hs_diploma = 3758L, 
+    pct_4yr = 49.4944119212347, pct_2yr = 23.6029803086748, pct_4yr_delayed = 1.0111761575306, 
+    pct_2yr_delayed = 3.40606705694518, avg_test_math_8_std = 0.359298796035125), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;), row.names = c(NA, -1L), class = c(&quot;tbl_df&quot;, 
+&quot;tbl&quot;, &quot;data.frame&quot;))</code></pre>
+</div>
+<p>To make our graph interactive, we have to make it so that the graph code changes the arguments and data elements within it based on user input. The easiest way to do this is to change our graph code into a function. OUr function will take basic input arguments and use those inputs to change the output. A very basic example of a function is below. Put whatever text you want where it says “Your text here” and watch it get printed out.</p>
+<div class="tutorial-exercise" data-label="basic-function" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>printme &lt;- function(x){
+  print(x)
+}
+
+printme(x=&quot;Your text here&quot;)</code></pre>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":false,"error":false,"message":false,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
+</div>
+<p>We want to do the same thing for our graphing code so that we can have the graph be for 2-year or 4-year enrollment. Our input is “2” or “4” and graph output changes based on that input. Below we can take all parameters in the college enrollment scatter that should change with the selection of 2-year or 4-year enrollment and change them using and if statement. Put 2 or 4 into the function at the bottom and watch the graph change.</p>
+<div class="tutorial-exercise" data-label="scatter-function" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="30">
+<pre class="text"><code>scatter_function &lt;- function(college_type){
+  
+  if (college_type == 2){
+    school_y &lt;- schoolData$pct_2yr
+    agency_y &lt;- agencyData$pct_2yr
+    tooltip_title &lt;- &quot;Seamless 2-yr Enrollment: &quot;
+    avg_label &lt;- &quot;Average 2-yr Enrollment&quot;
+    title &lt;- &quot;Relationship between Average Two-Year College Graduation &lt;br&gt; and Average 8th Grade Achivement for High Schools&quot;
+  } 
+  else if (college_type==4){
+    school_y &lt;- schoolData$pct_4yr
+    agency_y &lt;- agencyData$pct_4yr
+    tooltip_title &lt;- &quot;Seamless 4-yr Enrollment: &quot;
+    avg_label &lt;- &quot;Average 4-yr Enrollment&quot;
+    title &lt;- &quot;Relationship between Average Four-Year College Graduation &lt;br&gt; and Average 8th Grade Achivement for High Schools&quot;
+  }
+  else{
+    stop(&quot;college_type must be 2 or 4&quot;)
+  }
+  
+  # Same plot but make the markers bigger, change the marker colors
+  # Named colors list https://www.w3.org/TR/css3-color/#svg-color
+  plot_2 &lt;- plot_ly(data = schoolData, x = ~avg_test_math_8_std, y = school_y, mode = &quot;markers&quot;, type=&quot;scatter&quot;,
+                    marker = list(size=10,
+                                  color = &quot;steelblue&quot;,
+                                  line = list(
+                                    color = &quot;navy&quot;,
+                                    width = 2
+                                  )),
+                    hoverinfo = &quot;text&quot;,             
+                    text = ~paste(
+                      &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                      &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                      &quot;Average 8th Grade Math Score: &quot;, format(schoolData$avg_test_math_8_std, digits=2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                      tooltip_title, format(school_y, digits=2), &quot;%&quot;,
+                      sep=&quot;&quot;
+                    )
+  )
+  
+  # Adding lines
+  # Add fit line
+  fit &lt;- lm(school_y ~ avg_test_math_8_std, data = schoolData)
+  plot_3 &lt;- plot_2 %&gt;%
+    add_trace(x = schoolData$avg_test_math_8_std, y = fitted(fit), mode = &quot;lines&quot;, line = list(color = &quot;black&quot;))
+  plot_3
+  
+  # Create agency average lines using shapes - these lines will be added in next step
+  # Average 8th grade score
+  avg_8th_line &lt;- list(
+    type = &#39;line&#39;,
+    line = list(color = &quot;orange&quot;, dash = &#39;dash&#39;),
+    x0 = agencyData$avg_test_math_8_std,
+    x1 = agencyData$avg_test_math_8_std,
+    y0 = 0,
+    y1 = 100
+  )
+  # Average enrollment
+  avg_4yr_line &lt;- list(
+    type = &#39;line&#39;,
+    line = list(color = &quot;orange&quot;, dash = &#39;dash&#39;),
+    x0 = -.5,
+    x1 = 1,
+    y0 = agency_y,
+    y1 = agency_y
+  )
+  # Average 8th grade line label
+  avg_8th_label &lt;- list(
+    text=&quot;Avg 8th Grade Score&quot;,
+    x=agencyData$avg_test_math_8_std,
+    y=100,
+    showarrow = FALSE,
+    xanchor = &#39;left&#39;,
+    yanchor = &#39;top&#39;
+  )
+  # Average enrollment line label
+  avg_4yr_label &lt;- list(
+    text=avg_label,
+    x=-.5,
+    y=agency_y,
+    showarrow = FALSE,
+    xanchor = &#39;left&#39;,
+    yanchor = &#39;bottom&#39;
+  )
+  
+  # Add lines and Styling options to plot 3
+  plot_3_with_opts &lt;- layout(plot_3, 
+                             title = title,
+                             xaxis = list(
+                               title = &quot;Average 8th Grade Math Test Score (Std. Dev. Units)&quot;,
+                               range = c(-.5, 1),
+                               zeroline = TRUE,
+                               showline = TRUE
+                             ),
+                             yaxis = list(
+                               title = &quot;High School Graduates (%)&quot;,
+                               range = c(0,100)
+                             ),
+                             margin = list(b = 100, t = 100),
+                             showlegend = FALSE,
+                             shapes = list(avg_8th_line, avg_4yr_line),
+                             annotations = list(avg_8th_label, avg_4yr_label)
+  )
+  
+  return(plot_3_with_opts)
+
+} # End function
+
+scatter_function(college_type=2)</code></pre>
+<div id="45102e141596" style="width:624px;height:384px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="45102e141596">{"x":{"visdat":{"45107a404302":["function () ","plotlyVisDat"]},"cur_data":"45107a404302","attrs":{"45107a404302":{"x":{},"y":[32.5581395348837,26.6666666666667,18.6311787072243,25.3658536585366,27.816091954023,29.5719844357977,16.4948453608247,26.2755102040816,24.6290801186944,21.1920529801325,14.1776937618147],"mode":"markers","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":{},"alpha":1,"sizes":[10,100],"type":"scatter"},"45107a404302.1":{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[27.2620765808527,28.3155862900513,26.148584337641,25.1567525078238,23.7368914638458,25.5844807572079,24.7538658885766,22.1255402822431,22.3850009999784,20.0635128098084,17.8468054646509],"mode":"lines","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":{},"alpha":1,"sizes":[10,100],"type":"scatter","line":{"color":"black"}}},"layout":{"margin":{"b":100,"l":60,"t":100,"r":10},"title":"Relationship between Average Two-Year College Graduation <br> and Average 8th Grade Achivement for High Schools","xaxis":{"domain":[0,1],"title":"Average 8th Grade Math Test Score (Std. Dev. Units)","range":[-0.5,1],"zeroline":true,"showline":true},"yaxis":{"domain":[0,1],"title":"High School Graduates (%)","range":[0,100]},"showlegend":false,"shapes":[{"type":"line","line":{"color":"orange","dash":"dash"},"x0":0.359298796035125,"x1":0.359298796035125,"y0":0,"y1":100},{"type":"line","line":{"color":"orange","dash":"dash"},"x0":-0.5,"x1":1,"y0":23.6029803086748,"y1":23.6029803086748}],"annotations":[{"text":"Avg 8th Grade Score","x":0.359298796035125,"y":100,"showarrow":false,"xanchor":"left","yanchor":"top"},{"text":"Average 2-yr Enrollment","x":-0.5,"y":23.6029803086748,"showarrow":false,"xanchor":"left","yanchor":"bottom"}],"hovermode":"closest"},"source":"A","config":{"modeBarButtonsToAdd":[{"name":"Collaborate","icon":{"width":1000,"ascent":500,"descent":-50,"path":"M487 375c7-10 9-23 5-36l-79-259c-3-12-11-23-22-31-11-8-22-12-35-12l-263 0c-15 0-29 5-43 15-13 10-23 23-28 37-5 13-5 25-1 37 0 0 0 3 1 7 1 5 1 8 1 11 0 2 0 4-1 6 0 3-1 5-1 6 1 2 2 4 3 6 1 2 2 4 4 6 2 3 4 5 5 7 5 7 9 16 13 26 4 10 7 19 9 26 0 2 0 5 0 9-1 4-1 6 0 8 0 2 2 5 4 8 3 3 5 5 5 7 4 6 8 15 12 26 4 11 7 19 7 26 1 1 0 4 0 9-1 4-1 7 0 8 1 2 3 5 6 8 4 4 6 6 6 7 4 5 8 13 13 24 4 11 7 20 7 28 1 1 0 4 0 7-1 3-1 6-1 7 0 2 1 4 3 6 1 1 3 4 5 6 2 3 3 5 5 6 1 2 3 5 4 9 2 3 3 7 5 10 1 3 2 6 4 10 2 4 4 7 6 9 2 3 4 5 7 7 3 2 7 3 11 3 3 0 8 0 13-1l0-1c7 2 12 2 14 2l218 0c14 0 25-5 32-16 8-10 10-23 6-37l-79-259c-7-22-13-37-20-43-7-7-19-10-37-10l-248 0c-5 0-9-2-11-5-2-3-2-7 0-12 4-13 18-20 41-20l264 0c5 0 10 2 16 5 5 3 8 6 10 11l85 282c2 5 2 10 2 17 7-3 13-7 17-13z m-304 0c-1-3-1-5 0-7 1-1 3-2 6-2l174 0c2 0 4 1 7 2 2 2 4 4 5 7l6 18c0 3 0 5-1 7-1 1-3 2-6 2l-173 0c-3 0-5-1-8-2-2-2-4-4-4-7z m-24-73c-1-3-1-5 0-7 2-2 3-2 6-2l174 0c2 0 5 0 7 2 3 2 4 4 5 7l6 18c1 2 0 5-1 6-1 2-3 3-5 3l-174 0c-3 0-5-1-7-3-3-1-4-4-5-6z"},"click":"function(gd) { \n        // is this being viewed in RStudio?\n        if (location.search == '?viewer_pane=1') {\n          alert('To learn about plotly for collaboration, visit:\\n https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html');\n        } else {\n          window.open('https://cpsievert.github.io/plotly_book/plot-ly-for-collaboration.html', '_blank');\n        }\n      }"}],"cloud":false},"data":[{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[32.5581395348837,26.6666666666667,18.6311787072243,25.3658536585366,27.816091954023,29.5719844357977,16.4948453608247,26.2755102040816,24.6290801186944,21.1920529801325,14.1776937618147],"mode":"markers","marker":{"fillcolor":"rgba(31,119,180,1)","color":"steelblue","size":10,"line":{"color":"navy","width":2}},"hoverinfo":"text","text":["School: River <br>HS Graduates (N): 258<br>Average 8th Grade Math Score: -0.057%<br>Seamless 2-yr Enrollment: 33%","School: West Spring Hill <br>HS Graduates (N): 435<br>Average 8th Grade Math Score: -0.170%<br>Seamless 2-yr Enrollment: 27%","School: Upland <br>HS Graduates (N): 263<br>Average 8th Grade Math Score:  0.062%<br>Seamless 2-yr Enrollment: 19%","School: North <br>HS Graduates (N): 205<br>Average 8th Grade Math Score:  0.168%<br>Seamless 2-yr Enrollment: 25%","School: South <br>HS Graduates (N): 435<br>Average 8th Grade Math Score:  0.320%<br>Seamless 2-yr Enrollment: 28%","School: Peak <br>HS Graduates (N): 257<br>Average 8th Grade Math Score:  0.122%<br>Seamless 2-yr Enrollment: 30%","School: City <br>HS Graduates (N): 194<br>Average 8th Grade Math Score:  0.211%<br>Seamless 2-yr Enrollment: 16%","School: White Sands <br>HS Graduates (N): 392<br>Average 8th Grade Math Score:  0.493%<br>Seamless 2-yr Enrollment: 26%","School: Central <br>HS Graduates (N): 337<br>Average 8th Grade Math Score:  0.465%<br>Seamless 2-yr Enrollment: 25%","School: Camino <br>HS Graduates (N): 453<br>Average 8th Grade Math Score:  0.714%<br>Seamless 2-yr Enrollment: 21%","School: Orchard <br>HS Graduates (N): 529<br>Average 8th Grade Math Score:  0.951%<br>Seamless 2-yr Enrollment: 14%"],"type":"scatter","xaxis":"x","yaxis":"y","frame":null},{"x":[-0.0572368162790698,-0.17006474045977,0.0620150684410646,0.168237465365854,0.320300586206897,0.122428973929961,0.21138548814433,0.492871761734694,0.46508424925816,0.713709099337748,0.951112215879017],"y":[27.2620765808527,28.3155862900513,26.148584337641,25.1567525078238,23.7368914638458,25.5844807572079,24.7538658885766,22.1255402822431,22.3850009999784,20.0635128098084,17.8468054646509],"mode":"lines+markers","marker":{"size":10,"color":"steelblue","line":{"color":"navy","width":2}},"hoverinfo":"text","text":["School: River <br>HS Graduates (N): 258<br>Average 8th Grade Math Score: -0.057%<br>Seamless 2-yr Enrollment: 33%","School: West Spring Hill <br>HS Graduates (N): 435<br>Average 8th Grade Math Score: -0.170%<br>Seamless 2-yr Enrollment: 27%","School: Upland <br>HS Graduates (N): 263<br>Average 8th Grade Math Score:  0.062%<br>Seamless 2-yr Enrollment: 19%","School: North <br>HS Graduates (N): 205<br>Average 8th Grade Math Score:  0.168%<br>Seamless 2-yr Enrollment: 25%","School: South <br>HS Graduates (N): 435<br>Average 8th Grade Math Score:  0.320%<br>Seamless 2-yr Enrollment: 28%","School: Peak <br>HS Graduates (N): 257<br>Average 8th Grade Math Score:  0.122%<br>Seamless 2-yr Enrollment: 30%","School: City <br>HS Graduates (N): 194<br>Average 8th Grade Math Score:  0.211%<br>Seamless 2-yr Enrollment: 16%","School: White Sands <br>HS Graduates (N): 392<br>Average 8th Grade Math Score:  0.493%<br>Seamless 2-yr Enrollment: 26%","School: Central <br>HS Graduates (N): 337<br>Average 8th Grade Math Score:  0.465%<br>Seamless 2-yr Enrollment: 25%","School: Camino <br>HS Graduates (N): 453<br>Average 8th Grade Math Score:  0.714%<br>Seamless 2-yr Enrollment: 21%","School: Orchard <br>HS Graduates (N): 529<br>Average 8th Grade Math Score:  0.951%<br>Seamless 2-yr Enrollment: 14%"],"type":"scatter","line":{"fillcolor":"rgba(255,127,14,1)","color":"black"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1}},"base_url":"https://plot.ly"},"evals":["config.modeBarButtonsToAdd.0.click"],"jsHooks":{"render":[{"code":"function(el, x) { var ctConfig = crosstalk.var('plotlyCrosstalkOpts').set({\"on\":\"plotly_click\",\"persistent\":false,\"dynamic\":false,\"selectize\":false,\"opacityDim\":0.2,\"selected\":{\"opacity\":1}}); }","data":null}]}}</script>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":false,"error":false,"message":false,"exercise.df_print":"paged","exercise.setup":"loadData4","exercise.checker":"NULL"}</script>
+</div>
+<p>Time permitting, try the same exercise on our bar chart.</p>
+<div class="tutorial-exercise-support" data-label="loadData5" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code># Note: Repeating data load due to error in learnr package
+schoolData &lt;- structure(list(last_hs_name = c(&quot;River &quot;, &quot;West Spring Hill &quot;, 
+&quot;Upland &quot;, &quot;North &quot;, &quot;South &quot;, &quot;Peak &quot;, &quot;City &quot;, &quot;White Sands &quot;, 
+&quot;Central &quot;, &quot;Camino &quot;, &quot;Orchard &quot;), hs_diploma = c(258L, 435L, 
+263L, 205L, 435L, 257L, 194L, 392L, 337L, 453L, 529L), pct_4yr = c(27.1317829457364, 
+28.0459770114943, 41.4448669201521, 41.4634146341463, 44.1379310344828, 
+44.3579766536965, 51.0309278350515, 52.8061224489796, 53.4124629080119, 
+65.121412803532, 73.1568998109641), pct_2yr = c(32.5581395348837, 
+26.6666666666667, 18.6311787072243, 25.3658536585366, 27.816091954023, 
+29.5719844357977, 16.4948453608247, 26.2755102040816, 24.6290801186944, 
+21.1920529801325, 14.1776937618147), pct_4yr_delayed = c(0, 1.60919540229885, 
+1.14068441064639, 0.48780487804878, 1.14942528735632, 0, 0.515463917525773, 
+1.02040816326531, 1.48367952522255, 1.32450331125828, 1.13421550094518
+), pct_2yr_delayed = c(3.87596899224806, 5.97701149425287, 4.94296577946768, 
+5.85365853658537, 4.13793103448276, 4.28015564202335, 3.09278350515464, 
+3.31632653061224, 2.67062314540059, 0.662251655629139, 1.32325141776938
+), avg_test_math_8_std = c(-0.0572368162790698, -0.17006474045977, 
+0.0620150684410646, 0.168237465365854, 0.320300586206897, 0.122428973929961, 
+0.21138548814433, 0.492871761734694, 0.46508424925816, 0.713709099337748, 
+0.951112215879017), order_2yr = c(11L, 8L, 3L, 6L, 9L, 10L, 2L, 
+7L, 5L, 4L, 1L), order_4yr = 1:11), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;, &quot;order_2yr&quot;, &quot;order_4yr&quot;), row.names = c(NA, 
+-11L), class = c(&quot;tbl_df&quot;, &quot;tbl&quot;, &quot;data.frame&quot;))
+
+agencyData &lt;- structure(list(last_hs_name = &quot;Agency Average&quot;, hs_diploma = 3758L, 
+    pct_4yr = 49.4944119212347, pct_2yr = 23.6029803086748, pct_4yr_delayed = 1.0111761575306, 
+    pct_2yr_delayed = 3.40606705694518, avg_test_math_8_std = 0.359298796035125), .Names = c(&quot;last_hs_name&quot;, 
+&quot;hs_diploma&quot;, &quot;pct_4yr&quot;, &quot;pct_2yr&quot;, &quot;pct_4yr_delayed&quot;, &quot;pct_2yr_delayed&quot;, 
+&quot;avg_test_math_8_std&quot;), row.names = c(NA, -1L), class = c(&quot;tbl_df&quot;, 
+&quot;tbl&quot;, &quot;data.frame&quot;))</code></pre>
+</div>
+<div class="tutorial-exercise" data-label="bar-function" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="30">
+<pre class="text"><code>bar_function &lt;- function(college_type){
+  
+  # 2-year is filled in for you
+  if (college_type == 2){
+    school_seamless &lt;- schoolData$pct_2yr
+    agency_seamless &lt;- agencyData$pct_2yr
+    school_delayed &lt;- schoolData$pct_2yr_delayed
+    order &lt;- schoolData$order_2yr
+    tooltip_title_seamless &lt;- &quot;Seamless 2-yr Enrollment: &quot;
+    tooltip_title_delayed &lt;- &quot;Delayed 2-yr Enrollment: &quot;
+    avg_label &lt;- &quot;Average 2-yr Enrollment&quot;
+    title &lt;- &quot;Average 2-Year Seamless and Delayed Enrollment by High School&quot;
+  } 
+  # ***Try 4-year***
+  else if (college_type==4){
+    school_seamless &lt;- ?
+    agency_seamless &lt;- ?
+    school_delayed &lt;- ?
+    order &lt;- ?
+    tooltip_title_seamless &lt;- ?
+    tooltip_title_delayed &lt;- ?
+    avg_label &lt;- ?
+    title &lt;- ?
+  }
+  else{
+    stop(&quot;college_type must be 2 or 4&quot;)
+  }
+  
+  # Fill in the inputs for bar_1. The rest is done for you.
+  bar_1 &lt;- plot_ly(data = schoolData, x = ?, y = ?, type=&quot;bar&quot;, name=&quot;Seamless&quot;,
+                   text = ~paste(
+                     &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                     &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                     ? , format(?, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                     ?, format(?, digits = 2), &quot;%&quot;,
+                     sep=&quot;&quot;
+                   ),
+                   hoverinfo = &quot;text&quot;,
+                   color = I(&quot;navy&quot;)
+  )
+  bar_1
+  
+  # Add delayed enrollment to graph - turn the hover off using hoverinfo = none
+  bar_2 &lt;- add_trace(bar_1, x = order, y = school_delayed, 2, name = &quot;Delayed&quot;, 
+                     color = I(&quot;orange&quot;),
+                     hoverinfo = &quot;none&quot;
+  )
+  bar_2
+  
+  # Stack them up! Change the barmode to stack in layout
+  bar_3 &lt;- layout(bar_2, barmode = &quot;stack&quot;)
+  bar_3
+  
+  # Add line and line label for average seamless rate and format the plot with style()
+  # Average enrollment line
+  avg_line &lt;- list(
+    type = &#39;line&#39;,
+    line = list(color = &quot;black&quot;, dash = &#39;dash&#39;),
+    x0 = 0,
+    x1 = 11,
+    y0 = agency_seamless,
+    y1 = agency_seamless
+  )
+  # Average enrollment line label
+  # Hint: look at the number of schools and divide that in half for the x position 
+  avg_line_label &lt;- list(
+    text=avg_label,
+    x=5.5,
+    y=agency_seamless,
+    showarrow = FALSE,
+    xanchor = &#39;center&#39;,
+    yanchor = &#39;bottom&#39;
+  )
+  
+  bar_3_with_opts &lt;- layout(bar_3, 
+                            title = title,
+                            xaxis = list(
+                              title = &quot;High School&quot;,
+                              tickvals = 1:length(schoolData$last_hs_name),
+                              ticktext = schoolData$last_hs_name,
+                              zeroline = TRUE,
+                              showline = TRUE
+                            ),
+                            yaxis = list(
+                              title = &quot;High School Graduates (%)&quot;,
+                              range = c(0,100)
+                            ),
+                            margin = list(b = 100, t = 100),
+                            shapes = list(avg_line),
+                            annotations = list(avg_line_label)
+  )
+  bar_3_with_opts
+  
+  # Make sure you return the output
+  return(bar_3_with_opts)
+  
+} # End function
+
+# Put in 2 or 4 here and watch the graph change when you run the code!
+bar_function(2)</code></pre>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":false,"error":false,"message":false,"exercise.df_print":"paged","exercise.setup":"loadData5","exercise.checker":"NULL"}</script>
+</div>
+<div class="tutorial-exercise-support" data-label="bar-function-solution" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code>bar_function &lt;- function(college_type){
+  
+  if (college_type == 2){
+    school_seamless &lt;- schoolData$pct_2yr
+    agency_seamless &lt;- agencyData$pct_2yr
+    school_delayed &lt;- schoolData$pct_2yr_delayed
+    order &lt;- schoolData$order_2yr
+    tooltip_title_seamless &lt;- &quot;Seamless 2-yr Enrollment: &quot;
+    tooltip_title_delayed &lt;- &quot;Delayed 2-yr Enrollment: &quot;
+    avg_label &lt;- &quot;Average 2-yr Enrollment&quot;
+    title &lt;- &quot;Average 2-Year Seamless and Delayed Enrollment by High School&quot;
+  } 
+  else if (college_type==4){
+    school_seamless &lt;- schoolData$pct_4yr
+    agency_seamless &lt;- agencyData$pct_4yr
+    school_delayed &lt;- schoolData$pct_4yr_delayed
+    order &lt;- schoolData$order_4yr
+    tooltip_title_seamless &lt;- &quot;Seamless 4-yr Enrollment: &quot;
+    tooltip_title_delayed &lt;- &quot;Delayed 4-yr Enrollment: &quot;
+    avg_label &lt;- &quot;Average 4-yr Enrollment&quot;
+    title &lt;- &quot;Average 4-Year Seamless and Delayed Enrollment by High School&quot;
+  }
+  else{
+    stop(&quot;college_type must be 2 or 4&quot;)
+  }
+  
+  bar_1 &lt;- plot_ly(data = schoolData, x = order, y = school_seamless, type=&quot;bar&quot;, name=&quot;Seamless&quot;,
+                   text = ~paste(
+                     &quot;School: &quot;, schoolData$last_hs_name, &quot;&lt;br&gt;&quot;,
+                     &quot;HS Graduates (N): &quot;, schoolData$hs_diploma, &quot;&lt;br&gt;&quot;,
+                     tooltip_title_seamless , format(school_seamless, digits = 2), &quot;%&quot;, &quot;&lt;br&gt;&quot;,
+                     tooltip_title_delayed, format(school_delayed, digits = 2), &quot;%&quot;,
+                     sep=&quot;&quot;
+                   ),
+                   hoverinfo = &quot;text&quot;,
+                   color = I(&quot;navy&quot;)
+  )
+  bar_1
+  
+  # Add delayed enrollment to graph - turn the hover off using hoverinfo = none
+  bar_2 &lt;- add_trace(bar_1, x = order, y = school_delayed, 2, name = &quot;Delayed&quot;, 
+                     color = I(&quot;orange&quot;),
+                     hoverinfo = &quot;none&quot;
+  )
+  bar_2
+  
+  # Stack them up! Change the barmode to stack in layout
+  bar_3 &lt;- layout(bar_2, barmode = &quot;stack&quot;)
+  bar_3
+  
+  # Add line and line label for average seamless rate and format the plot with style()
+  # Average enrollment line
+  avg_line &lt;- list(
+    type = &#39;line&#39;,
+    line = list(color = &quot;black&quot;, dash = &#39;dash&#39;),
+    x0 = 0,
+    x1 = 11,
+    y0 = agency_seamless,
+    y1 = agency_seamless
+  )
+  # Average enrollment line label
+  # Hint: look at the number of schools and divide that in half for the x position 
+  avg_line_label &lt;- list(
+    text=avg_label,
+    x=5.5,
+    y=agency_seamless,
+    showarrow = FALSE,
+    xanchor = &#39;center&#39;,
+    yanchor = &#39;bottom&#39;
+  )
+  
+  bar_3_with_opts &lt;- layout(bar_3, 
+                            title = title,
+                            xaxis = list(
+                              title = &quot;High School&quot;,
+                              tickvals = 1:length(schoolData$last_hs_name),
+                              ticktext = schoolData$last_hs_name,
+                              zeroline = TRUE,
+                              showline = TRUE
+                            ),
+                            yaxis = list(
+                              title = &quot;High School Graduates (%)&quot;,
+                              range = c(0,100)
+                            ),
+                            margin = list(b = 100, t = 100),
+                            shapes = list(avg_line),
+                            annotations = list(avg_line_label)
+  )
+  bar_3_with_opts
+  
+  # Make sure you return the output
+  return(bar_3_with_opts)
+  
+} # End function
+
+# Put in 2 or 4 here and watch the graph change when you run the code!
+bar_function(2)</code></pre>
+</div>
+</div>
+<div id="section-shiny-plotly" class="section level2">
+<h2>Shiny + Plotly</h2>
+<p>Shiny will allow us to add interactivity to our graphs and even build a full website using R. Here is a <a href="http://shiny.rstudio.com/images/shiny-cheatsheet.pdf">reference page</a> for building a Shiny App. Shiny apps can get very complicated, but the basic template is simple:</p>
+<ol style="list-style-type: decimal">
+<li><p>Define <code>ui</code> (user interface). Typically this is <code>fluidpage</code>. This is where the content of the webpage goes. <code>ui &lt;- fluidpage()</code></p></li>
+<li><p>Define <code>server &lt;- function(input, output) {}</code> Inside the curly braces put what is updated based on the input from the user interface.</p></li>
+<li><p>Add the line <code>shinyApp(ui = ui, server = server)</code></p></li>
+</ol>
+<p>Done!</p>
+<p>User input comes from Shiny widgets. There are <a href="https://shiny.rstudio.com/gallery/widget-gallery.html">many other widgets available</a>. Some example widgets are below. Feel free to try out other widgets from the gallery.</p>
+<div class="tutorial-exercise" data-label="shinywidgets" data-caption="Code" data-completion="1" data-diagnostics="1" data-lines="0">
+<pre class="text"><code> radioButtons(&quot;buttons&quot;, label = &quot;Select Enrollment Type:&quot;,
+                   choices = list(&quot;2-year&quot; = 2, &quot;4-year&quot; = 4)
+              )</code></pre>
+<div id="buttons" class="form-group shiny-input-radiogroup shiny-input-container">
+<label class="control-label" for="buttons">Select Enrollment Type:</label>
+<div class="shiny-options-group">
+<div class="radio">
+<label>
+<input type="radio" name="buttons" value="2" checked="checked"/>
+<span>2-year</span>
+</label>
+</div>
+<div class="radio">
+<label>
+<input type="radio" name="buttons" value="4"/>
+<span>4-year</span>
+</label>
+</div>
+</div>
+</div>
+<pre class="text"><code>  selectInput(&quot;select&quot;, label = h3(&quot;Select a School&quot;), 
+    choices = list(&quot;School A&quot; = 1, &quot;School B&quot; = 2, &quot;School C&quot; = 3), 
+    selected = 1)</code></pre>
+<div class="form-group shiny-input-container">
+<label class="control-label" for="select">
+<h3>Select a School</h3>
+</label>
+<div>
+<select id="select"><option value="1" selected>School A</option>
+<option value="2">School B</option>
+<option value="3">School C</option></select>
+<script type="application/json" data-for="select" data-nonempty="">{}</script>
+</div>
+</div>
+<script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":false,"error":false,"message":false,"exercise.df_print":"paged","exercise.checker":"NULL"}</script>
+</div>
+<div id="section-ending-interactivity" class="section level3">
+<h3>Ending interactivity</h3>
+<p>Unfotunately this concludes the interactive portion of the tutorial in your web browser because the <code>learnr</code> <a href="https://rstudio.github.io/learnr/">tutorial package</a> does not currently support embedding Shiny Apps. You may still follow along in this tutorial. You will run the remainder of the content on your local machine in RStudio using the R scripts on our <a href="https://github.com/strategicdataproject/dataviz-r">strategicdataproject/dataviz-r</a> github page.</p>
+<p>To install RStudio, you must first download and install R <a href="https://www.r-project.org/">here</a>. Then, download and install RStudio <a href="https://www.rstudio.com/products/rstudio/download2/">here</a>. Once in RStudio, install the Shiny and Plotly packages by going to <code>Tools</code> -&gt; <code>Install Packages</code>.</p>
+</div>
+<div id="section-example-scatter-in-shiny" class="section level3">
+<h3>Example Scatter in Shiny</h3>
+<p>After downloading the <a href="https://github.com/strategicdataproject/dataviz-r">Github repository</a>, open <code>1_shiny_example_scatter.R</code>. Scroll to line 126. Here you can see the layout for our ShinyApp. Within <code>fluidpage()</code> there is the <code>titlePanel</code>, which puts the title at the top, and <code>sidebarLayout</code> which gives the page a <code>sidebarPanel</code> where our controls are and a <code>mainPanel</code> where our graph lives. Inside <code>server</code>, we render our <code>scatterfunction</code> using <code>renderPlotly</code>.</p>
+<pre class="r"><code># Simple example - control the scatter with a sidebar
+ui &lt;- fluidPage(
+  
+  titlePanel(&quot;College Enrollment Scatter&quot;),
+  
+  sidebarLayout(
+    sidebarPanel(
+          radioButtons(&quot;buttons&quot;, label = &quot;Select Enrollment Type:&quot;,
+            choices = list(&quot;2-year&quot; = 2, &quot;4-year&quot; = 4)
+          )
+    ),
+    mainPanel(plotlyOutput(&quot;scatter&quot;))
+  )
+  
+)
+
+server &lt;- function(input, output) {
+  
+  output$scatter &lt;- renderPlotly({
+    
+    scatter_function(college_type=input$buttons) 
+    
+  }) # End render plotly
+  
+}
+
+shinyApp(ui, server)</code></pre>
+<p>This is the result.</p>
+<p><img src="images/scatter.JPG" width="100%" /></p>
+</div>
+<div id="section-try-it-shiny-bar" class="section level3">
+<h3>Try It: Shiny Bar</h3>
+<p>Your turn! Open <code>2a_shiny_bar_exercise.R</code> and fill in the ?’s using the scatter example as a guide. If you get stuck, view the solution in <code>2b_shiny_bar_solution.R</code>.</p>
+<p>This is the result.</p>
+<p><img src="images/bar.JPG" width="100%" /></p>
+</div>
+</div>
+<div id="section-full-websites-with-shiny" class="section level2">
+<h2>Full Websites with Shiny</h2>
+<p>Finally, in the <a href="https://github.com/strategicdataproject/dataviz-r">Github Repository</a> you can view an example of a two-page website created using Shiny. We use the <code>shinythemes</code> package to give the website some styling and include both graphs as tabs on the page. There is also an example text page. View the code below.</p>
+<p>This is the result. <img src="images/full_site_1.JPG" width="100%" /> <img src="images/full_site_2.JPG" width="100%" /></p>
+<p>This concludes the tutorial. Good luck on your data visualization journeys!</p>
+
+<script type="application/shiny-prerendered" data-context="server-start">
+packages <- c("learnr","ggplot2","plotly", "plyr", "tidyverse", "shiny", "shinythemes")
+lapply(packages, library, character.only = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+learnr:::register_http_handlers(session, metadata = NULL)
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-viewdata-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-viewdata-code-editor`)), session)
+output$`tutorial-exercise-viewdata-output` <- renderUI({
+  `tutorial-exercise-viewdata-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-basicscatter-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-basicscatter-code-editor`)), session)
+output$`tutorial-exercise-basicscatter-output` <- renderUI({
+  `tutorial-exercise-basicscatter-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-prettyscatter-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-prettyscatter-code-editor`)), session)
+output$`tutorial-exercise-prettyscatter-output` <- renderUI({
+  `tutorial-exercise-prettyscatter-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-bestfit-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-bestfit-code-editor`)), session)
+output$`tutorial-exercise-bestfit-output` <- renderUI({
+  `tutorial-exercise-bestfit-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-layout-scatter-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-layout-scatter-code-editor`)), session)
+output$`tutorial-exercise-layout-scatter-output` <- renderUI({
+  `tutorial-exercise-layout-scatter-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-basic-bar-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-basic-bar-code-editor`)), session)
+output$`tutorial-exercise-basic-bar-output` <- renderUI({
+  `tutorial-exercise-basic-bar-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-bar-add-trace-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-bar-add-trace-code-editor`)), session)
+output$`tutorial-exercise-bar-add-trace-output` <- renderUI({
+  `tutorial-exercise-bar-add-trace-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-bar-stack-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-bar-stack-code-editor`)), session)
+output$`tutorial-exercise-bar-stack-output` <- renderUI({
+  `tutorial-exercise-bar-stack-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-bar-layout-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-bar-layout-code-editor`)), session)
+output$`tutorial-exercise-bar-layout-output` <- renderUI({
+  `tutorial-exercise-bar-layout-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-basic-function-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-basic-function-code-editor`)), session)
+output$`tutorial-exercise-basic-function-output` <- renderUI({
+  `tutorial-exercise-basic-function-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-scatter-function-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-scatter-function-code-editor`)), session)
+output$`tutorial-exercise-scatter-function-output` <- renderUI({
+  `tutorial-exercise-scatter-function-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-bar-function-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-bar-function-code-editor`)), session)
+output$`tutorial-exercise-bar-function-output` <- renderUI({
+  `tutorial-exercise-bar-function-result`()
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+`tutorial-exercise-shinywidgets-result` <- learnr:::setup_exercise_handler(reactive(req(input$`tutorial-exercise-shinywidgets-code-editor`)), session)
+output$`tutorial-exercise-shinywidgets-output` <- renderUI({
+  `tutorial-exercise-shinywidgets-result`()
+})
+</script>
+ <!--html_preserve-->
+<script type="application/shiny-prerendered" data-context="dependencies">
+{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/jquery-1.11.3"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootstrap"]},{"type":"character","attributes":{},"value":["3.3.5"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/bootstrap-3.3.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["viewport"]}},"value":[{"type":"character","attributes":{},"value":["width=device-width, initial-scale=1"]}]},{"type":"character","attributes":{},"value":["js/bootstrap.min.js","shim/html5shiv.min.js","shim/respond.min.js"]},{"type":"character","attributes":{},"value":["css/cerulean.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["pagedtable"]},{"type":"character","attributes":{},"value":["1.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/pagedtable-1.1"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/pagedtable.js"]},{"type":"character","attributes":{},"value":["css/pagedtable.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["highlightjs"]},{"type":"character","attributes":{},"value":["1.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/highlightjs-1.1"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["highlight.js"]},{"type":"character","attributes":{},"value":["textmate.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-autocompletion"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-autocompletion.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-diagnostics"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-diagnostics.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-format"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmarkdown/templates/tutorial/resources"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-format.js"]},{"type":"character","attributes":{},"value":["tutorial-format.css","rstudio-theme.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/jquery-1.11.3"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["font-awesome"]},{"type":"character","attributes":{},"value":["4.5.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/font-awesome-4.5.0"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/font-awesome.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootbox"]},{"type":"character","attributes":{},"value":["4.4.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/bootbox"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["bootbox.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["localforage"]},{"type":"character","attributes":{},"value":["1.4.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/localforage"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["localforage.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-autocompletion"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-autocompletion.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-diagnostics"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-diagnostics.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["quiz-binding"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["quiz.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[false]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/jquery-1.11.3"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootstrap"]},{"type":"character","attributes":{},"value":["3.3.5"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/bootstrap-3.3.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["viewport"]}},"value":[{"type":"character","attributes":{},"value":["width=device-width, initial-scale=1"]}]},{"type":"character","attributes":{},"value":["js/bootstrap.min.js","shim/html5shiv.min.js","shim/respond.min.js"]},{"type":"character","attributes":{},"value":["css/bootstrap.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootbox"]},{"type":"character","attributes":{},"value":["4.4.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/bootbox"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["bootbox.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["localforage"]},{"type":"character","attributes":{},"value":["1.4.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/localforage"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["localforage.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-autocompletion"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-autocompletion.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-diagnostics"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-diagnostics.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["slickquiz"]},{"type":"character","attributes":{},"value":["1.5.20"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/slickquiz"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/slickQuiz.js"]},{"type":"character","attributes":{},"value":["css/slickQuiz.css","css/slickQuizTutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotlyjs"]},{"type":"character","attributes":{},"value":["1.26.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/plotlyjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly-latest.min.js"]},{"type":"character","attributes":{},"value":["plotly-htmlwidgets.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotly-binding"]},{"type":"character","attributes":{},"value":["4.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[false]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"character","attributes":{},"value":["1.0.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/crosstalk.min.js"]},{"type":"character","attributes":{},"value":["css/crosstalk.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["typedarray"]},{"type":"character","attributes":{},"value":["0.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/typedarray"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["typedarray.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotlyjs"]},{"type":"character","attributes":{},"value":["1.26.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/plotlyjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly-latest.min.js"]},{"type":"character","attributes":{},"value":["plotly-htmlwidgets.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotly-binding"]},{"type":"character","attributes":{},"value":["4.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[false]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"character","attributes":{},"value":["1.0.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/crosstalk.min.js"]},{"type":"character","attributes":{},"value":["css/crosstalk.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["typedarray"]},{"type":"character","attributes":{},"value":["0.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/typedarray"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["typedarray.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotlyjs"]},{"type":"character","attributes":{},"value":["1.26.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/plotlyjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly-latest.min.js"]},{"type":"character","attributes":{},"value":["plotly-htmlwidgets.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotly-binding"]},{"type":"character","attributes":{},"value":["4.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[false]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"character","attributes":{},"value":["1.0.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/crosstalk.min.js"]},{"type":"character","attributes":{},"value":["css/crosstalk.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["typedarray"]},{"type":"character","attributes":{},"value":["0.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/typedarray"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["typedarray.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotlyjs"]},{"type":"character","attributes":{},"value":["1.26.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/plotlyjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly-latest.min.js"]},{"type":"character","attributes":{},"value":["plotly-htmlwidgets.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotly-binding"]},{"type":"character","attributes":{},"value":["4.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[false]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"character","attributes":{},"value":["1.0.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/crosstalk.min.js"]},{"type":"character","attributes":{},"value":["css/crosstalk.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["typedarray"]},{"type":"character","attributes":{},"value":["0.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/typedarray"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["typedarray.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["quiz-binding"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["quiz.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[false]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/jquery-1.11.3"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootstrap"]},{"type":"character","attributes":{},"value":["3.3.5"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["rmd/h/bootstrap-3.3.5"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["viewport"]}},"value":[{"type":"character","attributes":{},"value":["width=device-width, initial-scale=1"]}]},{"type":"character","attributes":{},"value":["js/bootstrap.min.js","shim/html5shiv.min.js","shim/respond.min.js"]},{"type":"character","attributes":{},"value":["css/bootstrap.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["rmarkdown"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["bootbox"]},{"type":"character","attributes":{},"value":["4.4.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/bootbox"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["bootbox.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["localforage"]},{"type":"character","attributes":{},"value":["1.4.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/localforage"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["localforage.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial.js"]},{"type":"character","attributes":{},"value":["tutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-autocompletion"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-autocompletion.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["tutorial-diagnostics"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/tutorial"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["tutorial-diagnostics.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["slickquiz"]},{"type":"character","attributes":{},"value":["1.5.20"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/slickquiz"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/slickQuiz.js"]},{"type":"character","attributes":{},"value":["css/slickQuiz.css","css/slickQuizTutorial.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["0.8"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotlyjs"]},{"type":"character","attributes":{},"value":["1.26.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/plotlyjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly-latest.min.js"]},{"type":"character","attributes":{},"value":["plotly-htmlwidgets.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["plotly-binding"]},{"type":"character","attributes":{},"value":["4.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[false]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/jquery"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"character","attributes":{},"value":["1.0.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/crosstalk.min.js"]},{"type":"character","attributes":{},"value":["css/crosstalk.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["typedarray"]},{"type":"character","attributes":{},"value":["0.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/typedarray"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["typedarray.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["plotly"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["ace"]},{"type":"character","attributes":{},"value":["1.2.6"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/ace"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["ace.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["clipboardjs"]},{"type":"character","attributes":{},"value":["1.5.15"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/clipboardjs"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["clipboard.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["learnr"]},{"type":"logical","attributes":{},"value":[true]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["selectize"]},{"type":"character","attributes":{},"value":["0.11.2"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["href"]}},"value":[{"type":"character","attributes":{},"value":["shared/selectize"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/selectize.bootstrap3.css"]},{"type":"character","attributes":{},"value":["<!--[if lt IE 9]>\n<script src=\"shared/selectize/js/es5-shim.min.js\"><\/script>\n<![endif]-->\n<script src=\"shared/selectize/js/selectize.min.js\"><\/script>"]},{"type":"NULL"},{"type":"NULL"},{"type":"logical","attributes":{},"value":[true]}]}]}
+</script>
+<!--/html_preserve-->
+</div>
+
+</div> <!-- topics -->
+
+<div class="topicsContainer">
+<div class="topicsPositioner">
+<div class="band">
+<div class="bandContent topicsListContainer">
+
+<!-- begin doc-metadata -->
+<div id="doc-metadata">
+<h2 class="title toc-ignore" style="display:none;">Plotly and Shiny Tutorial</h2>
+</div>
+<!-- end doc-metadata -->
+
+</div> <!-- bandContent.topicsListContainer -->
+</div> <!-- band -->
+</div> <!-- topicsPositioner -->
+</div> <!-- topicsContainer -->
+
+
+</div> <!-- bandContent page -->
+</div> <!-- pageContent band -->
+
+
+
+
+<script>
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+</script>
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+
+</html>
